@@ -9,16 +9,19 @@ using WebApplication1.Models;
 
 namespace WebApplication1.Controllers
 {
-    public class DepartmentController : ApiController
+    public class EmployeeController : ApiController
     {
         public HttpResponseMessage Get()
         {
             string query = @"
-                select DepartmentId,DepartmentName from 
-                dbo.Department
+                select EmployeeId,EmployeeName,Department,
+                convert(varchar(10),DateOfJoining,120) as DateOfJoining,
+                PhotoFileName
+                from 
+                dbo.Employee
                 ";
             DataTable table = new DataTable();
-            using(var con = new SqlConnection(ConfigurationManager.
+            using (var con = new SqlConnection(ConfigurationManager.
                 ConnectionStrings["EmployeeAppDB"].ConnectionString))
             using (var cmd = new SqlCommand(query, con))
             using (var da = new SqlDataAdapter(cmd))
@@ -30,13 +33,19 @@ namespace WebApplication1.Controllers
 
         }
 
-        public string Post(Department dep)
+        public string Post(Employee emp)
         {
             try
             {
                 string query = @"
-                insert into dbo.Department values
-                ('" + dep.DepartmentName + @"')";
+                insert into dbo.Employee values
+                (
+                '" + emp.EmployeeName + @"'
+                ,'" + emp.Department + @"'
+                ,'" + emp.DateOfJoining + @"'
+                ,'" + emp.PhotoFileName + @"'
+                )
+                ";
 
                 DataTable table = new DataTable();
                 using (var con = new SqlConnection(ConfigurationManager.
@@ -55,14 +64,17 @@ namespace WebApplication1.Controllers
             }
         }
 
-        public string Put(Department dep)
+        public string Put(Employee emp)
         {
             try
             {
                 string query = @"
-                update dbo.Department set DepartmentName=
-                '" + dep.DepartmentName + @"'
-                where DepartmentId="+dep.DepartmentId+@"
+                update dbo.Employee set 
+                EmployeeName='" + emp.EmployeeName + @"'
+                ,Department='" + emp.Department + @"'
+                ,DateOfJoining='" + emp.DateOfJoining + @"'
+                ,PhotoFileName='" + emp.PhotoFileName + @"'
+                where EmployeeId=" + emp.EmployeeId + @"
                 ";
 
                 DataTable table = new DataTable();
@@ -87,8 +99,8 @@ namespace WebApplication1.Controllers
             try
             {
                 string query = @"
-                delete from dbo.Department            
-                where DepartmentId=" + id + @"
+                delete from dbo.Employee            
+                where EmployeeId=" + id + @"
                 ";
 
                 DataTable table = new DataTable();
@@ -106,6 +118,23 @@ namespace WebApplication1.Controllers
             {
                 return "Failed to delete!";
             }
+        }
+        [Route("api/Employee/GetAllDepartmentNames")]
+        [HttpGet]
+        public HttpResponseMessage GetAllDepartmentNames()
+        {
+            string query = @"
+                select DepartmentName from dbo.Department";
+            DataTable table = new DataTable();
+            using (var con = new SqlConnection(ConfigurationManager.
+                ConnectionStrings["EmployeeAppDB"].ConnectionString))
+            using (var cmd = new SqlCommand(query, con))
+            using (var da = new SqlDataAdapter(cmd))
+            {
+                cmd.CommandType = CommandType.Text;
+                da.Fill(table);
+            }
+            return Request.CreateResponse(HttpStatusCode.OK, table);
         }
     }
 }
